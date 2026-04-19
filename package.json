@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "db:setup": "node database/setup.js",
     "db:init": "node database/setup.js",
+    "debug:login": "node debug-login.js",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:api": "newman run api/tests.postman_collection.json"
