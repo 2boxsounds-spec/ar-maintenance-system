@@ -50,8 +50,8 @@ cd ar-maintenance-system
 # Install dependencies
 npm install
 
-# Initialize database
-npm run db:init
+# Initialize database (creates users with correct passwords)
+npm run db:setup
 
 # Start the server
 npm start
