@@ -1,10 +1,11 @@
 /**
  * Dashboard Data Routes
  * GET /api/v1/dashboard/stats
+ * GET /api/v1/dashboard/faults
  */
 
 const express = require('express');
-const { Fault, ToolEvent, sequelize } = require('../database');
+const { Fault, ToolEvent, User, sequelize } = require('../database');
 
 const router = express.Router();
 
@@ -44,46 +45,113 @@ router.get('/stats', async (req, res) => {
       order: [[sequelize.fn('COUNT', sequelize.col('id')), 'DESC']]
     });
 
-    // Recent tool events
-    const recentToolEvents = await ToolEvent.findAll({
-      limit: 10,
-      order: [['timestamp', 'DESC']]
-    });
-
     // Currently checked out tools
     const checkedOutTools = await ToolEvent.findAll({
-      where: { eventType: 'check_out' },
-      limit: 20,
-      order: [['timestamp', 'DESC']]
+      where: { eventType: 'check_out' }
     });
 
-    // Recent faults
-    const recentFaults = await Fault.findAll({
-      limit: 10,
-      order: [['createdAt', 'DESC']]
-    });
+    // Format results
+    const bySystem = {};
+    faultsBySystem.forEach(f => { bySystem[f.busSystem] = parseInt(f.dataValues.count); });
+
+    const byStatus = {};
+    faultsByStatus.forEach(f => { byStatus[f.status] = parseInt(f.dataValues.count); });
+
+    const byBay = {};
+    faultsByBay.forEach(f => { byBay[f.bayLocation] = parseInt(f.dataValues.count); });
+
+    const totalFaults = Object.values(byStatus).reduce((a, b) => a + b, 0);
+    const openFaults = byStatus['open'] || 0;
+    const resolvedFaults = byStatus['resolved'] || 0;
+    const toolsOut = checkedOutTools.length;
 
     res.json({
-      faultsBySystem: faultsBySystem.map(f => ({
-        system: f.busSystem,
-        count: parseInt(f.dataValues.count)
-      })),
-      faultsByStatus: faultsByStatus.map(f => ({
-        status: f.status,
-        count: parseInt(f.dataValues.count)
-      })),
-      faultsByBay: faultsByBay.map(f => ({
-        bay: f.bayLocation,
-        count: parseInt(f.dataValues.count)
-      })),
-      recentToolEvents,
-      checkedOutTools,
-      recentFaults,
-      generatedAt: new Date().toISOString()
+      totalFaults,
+      openFaults,
+      resolvedFaults,
+      toolsOut,
+      bySystem,
+      byStatus,
+      byBay
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+  }
+});
+
+// Get all faults
+router.get('/faults', async (req, res) => {
+  try {
+    // Only supervisors and admins can access all faults
+    if (req.user.role === 'technician') {
+      return res.status(403).json({ error: 'Faults access denied' });
+    }
+
+    const faults = await Fault.findAll({
+      include: [{
+        model: User,
+        as: 'reportedBy',
+        attributes: ['username']
+      }],
+      order: [['createdAt', 'DESC']],
+      limit: 50
+    });
+
+    res.json(faults);
+  } catch (error) {
+    console.error('Faults fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch faults' });
+  }
+});
+
+// Get recent activity
+router.get('/activity', async (req, res) => {
+  try {
+    if (req.user.role === 'technician') {
+      return res.status(403).json({ error: 'Activity access denied' });
+    }
+
+    const recentFaults = await Fault.findAll({
+      limit: 20,
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: User,
+        as: 'reportedBy',
+        attributes: ['username']
+      }]
+    });
+
+    const recentToolEvents = await ToolEvent.findAll({
+      limit: 20,
+      order: [['timestamp', 'DESC']],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['username']
+      }]
+    });
+
+    // Combine and format
+    const activity = [
+      ...recentFaults.map(f => ({
+        time: f.createdAt,
+        user: f.reportedBy?.username || 'Unknown',
+        action: 'Fault ' + f.status,
+        details: `${f.busSystem} - ${f.title}`
+      })),
+      ...recentToolEvents.map(t => ({
+        time: t.timestamp,
+        user: t.user?.username || 'Unknown',
+        action: 'Tool ' + t.eventType.replace('_', ' '),
+        details: t.toolName
+      }))
+    ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 20);
+
+    res.json(activity);
+  } catch (error) {
+    console.error('Activity fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch activity' });
   }
 });
 
