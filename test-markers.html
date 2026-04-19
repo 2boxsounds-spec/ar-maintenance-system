@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Test Markers - Bournemouth Buses</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #e4e4e4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00d4ff;
+            text-align: center;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .marker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .marker-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .marker-card h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .marker-card .info {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .marker {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px auto;
+            max-width: 256px;
+        }
+        .marker img {
+            width: 100%;
+            height: auto;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #00d4ff;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #00b8e6;
+        }
+        .test-steps {
+            background: rgba(0,212,255,0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .test-steps ol {
+            margin-left: 20px;
+        }
+        .test-steps li {
+            margin: 10px 0;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 AR Test Markers</h1>
+        <p style="text-align: center; color: #888;">Bournemouth Buses Maintenance System</p>
+
+        <div class="instructions">
+            <h2>📋 How to Test AR Detection</h2>
+            <p>
+                The AR system uses special markers (Hiro and Kanji) that the camera can detect. 
+                When you point your camera at these markers, the system will display fault information 
+                overlaid on the marker.
+            </p>
+        </div>
+
+        <div class="marker-grid">
+            <!-- HIRO Marker -->
+            <div class="marker-card">
+                <h3>🔧 HIRO Marker</h3>
+                <p class="info">
+                    <strong>Represents:</strong> Engine Compartment<br>
+                    <strong>Fault Type:</strong> Engine/Brake System<br>
+                    <strong>Location:</strong> Bay 3 - Bus 204
+                </p>
+                <div class="marker">
+                    <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/HIRO.jpg" alt="HIRO Marker" />
+                </div>
+                <div>
+                    <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/HIRO.jpg" 
+                       target="_blank" class="btn">Open Full Size</a>
+                    <a href="https://github.com/AR-js-org/AR.js/raw/master/data/images/HIRO.jpg" 
+                       download="hiro-marker.jpg" class="btn">Download</a>
+                </div>
+            </div>
+
+            <!-- KANJI Marker -->
+            <div class="marker-card">
+                <h3>🚪 KANJI Marker</h3>
+                <p class="info">
+                    <strong>Represents:</strong> Door System<br>
+                    <strong>Fault Type:</strong> Door Sensors<br>
+                    <strong>Location:</strong> Bay 7 - Bus 156
+                </p>
+                <div class="marker">
+                    <img src="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/KANJI.jpg" alt="KANJI Marker" />
+                </div>
+                <div>
+                    <a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/KANJI.jpg" 
+                       target="_blank" class="btn">Open Full Size</a>
+                    <a href="https://github.com/AR-js-org/AR.js/raw/master/data/images/KANJI.jpg" 
+                       download="kanji-marker.jpg" class="btn">Download</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-steps">
+            <h2>🧪 Testing Steps</h2>
+            <ol>
+                <li><strong>Print or Display:</strong> Print one of the markers above, or display it on another device (phone, tablet, second monitor)</li>
+                <li><strong>Start the Server:</strong> Run <code>npm start</code> in your project folder</li>
+                <li><strong>Open AR App:</strong> Go to http://localhost:3000/ar</li>
+                <li><strong>Login:</strong> Use j.smith / Tech123!</li>
+                <li><strong>Allow Camera:</strong> Click "Allow" when browser asks for camera permission</li>
+                <li><strong>Point Camera:</strong> Point your webcam at the printed/displayed marker</li>
+                <li><strong>Wait for Detection:</strong> The system should detect the marker within 2-5 seconds</li>
+                <li><strong>Check Overlay:</strong> You should see "Fault Detected" text appear over the marker</li>
+                <li><strong>Interact:</strong> A fault info panel should appear at the bottom with details</li>
+            </ol>
+        </div>
+
+        <div class="instructions" style="margin-top: 30px;">
+            <h2>💡 Tips for Best Detection</h2>
+            <ul style="margin-left: 20px; color: #ccc;">
+                <li>Use good lighting (not too bright, not too dark)</li>
+                <li>Keep the marker flat and still</li>
+                <li>Hold the camera steady, about 30-50cm from the marker</li>
+                <li>Avoid reflections on the marker surface</li>
+                <li>Try different angles if not detected immediately</li>
+                <li>Laptop webcams work better than phone cameras for testing</li>
+            </ul>
+        </div>
+
+        <div class="instructions" style="margin-top: 30px; background: rgba(255,230,109,0.1); border-left: 4px solid #ffe66d;">
+            <h2>⚠️ Troubleshooting</h2>
+            <p><strong>Camera not opening?</strong> Check browser permissions and allow camera access.</p>
+            <p><strong>Marker not detected?</strong> Try printing larger, improving lighting, or moving camera closer/further.</p>
+            <p><strong>Black screen?</strong> Check if camera is being used by another app (Zoom, Teams, etc.).</p>
+            <p><strong>AR not loading?</strong> Open browser console (F12) and check for errors.</p>
+        </div>
+    </div>
+</body>
+</html>
