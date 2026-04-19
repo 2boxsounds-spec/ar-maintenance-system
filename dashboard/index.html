@@ -8,6 +8,81 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e4e4e4; }
+        
+        /* Login Styles */
+        #login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .login-box h1 {
+            color: #00d4ff;
+            margin-bottom: 30px;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+        }
+        .login-box input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #00d4ff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .login-box button:hover {
+            background: #00b8e6;
+        }
+        .login-box .error {
+            color: #ff6b6b;
+            margin-top: 15px;
+            display: none;
+        }
+        .login-box .default-creds {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,212,255,0.1);
+            border-radius: 8px;
+            font-size: 0.9em;
+            text-align: left;
+        }
+        .login-box .default-creds h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .login-box .default-creds p {
+            color: #888;
+            margin: 5px 0;
+        }
+        
+        /* Dashboard Styles */
+        #dashboard-container {
+            display: none;
+        }
         header { background: rgba(255,255,255,0.05); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
         .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
@@ -25,159 +100,276 @@
         .status-resolved { color: #4ecdc4; }
         .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; }
         .btn-primary { background: #00d4ff; color: #000; }
+        .btn-success { background: #4ecdc4; color: #000; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>📊 Bournemouth Buses - Maintenance Dashboard</h1>
-        <div>
-            <span id="user-info">Loading...</span>
-            <button class="btn btn-primary" onclick="logout()" style="margin-left: 20px;">Logout</button>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="total-faults">0</div>
-                <div class="stat-label">Total Faults</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="open-faults">0</div>
-                <div class="stat-label">Open</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="resolved-faults">0</div>
-                <div class="stat-label">Resolved</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="tools-out">0</div>
-                <div class="stat-label">Tools Out</div>
+    <!-- Login View -->
+    <div id="login-container">
+        <div class="login-box">
+            <h1>📊 Dashboard Login</h1>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Username" required autocomplete="username">
+                <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                <button type="submit">Login</button>
+                <p class="error" id="login-error">Invalid credentials</p>
+            </form>
+            <div class="default-creds">
+                <h4>Default Credentials:</h4>
+                <p><strong>supervisor</strong> / Super123!</p>
+                <p><strong>admin</strong> / Admin123!</p>
+                <p><strong>j.smith</strong> / Tech123!</p>
             </div>
         </div>
+    </div>
 
-        <div class="dashboard-grid">
-            <div class="card">
-                <h2>Faults by System</h2>
-                <canvas id="systemChart"></canvas>
+    <!-- Dashboard View -->
+    <div id="dashboard-container">
+        <header>
+            <h1>📊 Bournemouth Buses - Maintenance Dashboard</h1>
+            <div>
+                <span id="user-info">Loading...</span>
+                <button class="btn btn-primary" onclick="logout()" style="margin-left: 20px;">Logout</button>
             </div>
-            <div class="card">
-                <h2>Faults by Bay</h2>
-                <canvas id="bayChart"></canvas>
-            </div>
-        </div>
+        </header>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2>Active Faults</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Bay</th>
-                        <th>Bus ID</th>
-                        <th>System</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Reported</th>
-                    </tr>
-                </thead>
-                <tbody id="faults-table">
-                    <tr><td colspan="6" style="text-align: center; color: #888;">Loading...</td></tr>
-                </tbody>
-            </table>
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-faults">0</div>
+                    <div class="stat-label">Total Faults</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="open-faults">0</div>
+                    <div class="stat-label">Open</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="resolved-faults">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="tools-out">0</div>
+                    <div class="stat-label">Tools Out</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>Faults by System</h2>
+                    <canvas id="systemChart"></canvas>
+                </div>
+                <div class="card">
+                    <h2>Faults by Bay</h2>
+                    <canvas id="bayChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h2>Active Faults</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bay</th>
+                            <th>Bus ID</th>
+                            <th>System</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Reported</th>
+                        </tr>
+                    </thead>
+                    <tbody id="faults-table">
+                        <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
+                <h2>Recent Activity</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activity-table">
+                        <tr><td colspan="4" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        let authToken = localStorage.getItem('dashboardToken');
+        let token = localStorage.getItem('token');
+        let currentUser = null;
 
-        async function loadDashboard() {
-            if (!authToken) {
-                window.location.href = '/dashboard/login.html';
-                return;
-            }
+        // Check if already logged in
+        if (token) {
+            validateToken();
+        }
+
+        // Login form handler
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/api/v1/dashboard/stats', {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                const response = await fetch('/api/v1/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
 
-                if (response.status === 401) {
-                    localStorage.removeItem('dashboardToken');
-                    window.location.href = '/dashboard/login.html';
-                    return;
-                }
-
                 const data = await response.json();
-                updateStats(data);
-                updateCharts(data);
-                updateFaultsTable(data.recentFaults);
+
+                if (response.ok) {
+                    token = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showDashboard();
+                } else {
+                    document.getElementById('login-error').style.display = 'block';
+                    document.getElementById('login-error').textContent = data.error || 'Login failed';
+                }
             } catch (error) {
-                console.error('Failed to load dashboard:', error);
+                console.error('Login error:', error);
+                document.getElementById('login-error').style.display = 'block';
+                document.getElementById('login-error').textContent = 'Connection error';
+            }
+        });
+
+        async function validateToken() {
+            try {
+                const response = await fetch('/api/v1/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    currentUser = user;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    showDashboard();
+                } else {
+                    logout();
+                }
+            } catch (error) {
+                console.error('Token validation error:', error);
+                logout();
             }
         }
 
-        function updateStats(data) {
-            const total = data.faultsByStatus.reduce((sum, f) => sum + f.count, 0);
-            const open = data.faultsByStatus.find(f => f.status === 'open')?.count || 0;
-            const resolved = data.faultsByStatus.find(f => f.status === 'resolved')?.count || 0;
-
-            document.getElementById('total-faults').textContent = total;
-            document.getElementById('open-faults').textContent = open;
-            document.getElementById('resolved-faults').textContent = resolved;
-            document.getElementById('tools-out').textContent = data.checkedOutTools.length;
-        }
-
-        function updateCharts(data) {
-            // System Chart
-            new Chart(document.getElementById('systemChart'), {
-                type: 'pie',
-                data: {
-                    labels: data.faultsBySystem.map(f => f.system),
-                    datasets: [{
-                        data: data.faultsBySystem.map(f => f.count),
-                        backgroundColor: ['#0077BB', '#EE3377', '#009988', '#CC3311', '#EE7733']
-                    }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-            });
-
-            // Bay Chart
-            new Chart(document.getElementById('bayChart'), {
-                type: 'bar',
-                data: {
-                    labels: data.faultsByBay.map(f => f.bay),
-                    datasets: [{
-                        label: 'Faults',
-                        data: data.faultsByBay.map(f => f.count),
-                        backgroundColor: '#00d4ff'
-                    }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
-            });
-        }
-
-        function updateFaultsTable(faults) {
-            const tbody = document.getElementById('faults-table');
-            tbody.innerHTML = faults.map(f => `
-                <tr>
-                    <td>${f.bayLocation}</td>
-                    <td>${f.vehicleId}</td>
-                    <td>${f.busSystem}</td>
-                    <td>${f.title}</td>
-                    <td class="status-${f.status}">${f.status}</td>
-                    <td>${new Date(f.createdAt).toLocaleDateString()}</td>
-                </tr>
-            `).join('');
+        function showDashboard() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'block';
+            
+            if (currentUser) {
+                document.getElementById('user-info').textContent = 
+                    `${currentUser.username} (${currentUser.role})`;
+            }
+            
+            loadDashboardData();
         }
 
         function logout() {
-            localStorage.removeItem('dashboardToken');
-            window.location.href = '/dashboard/login.html';
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            token = null;
+            currentUser = null;
+            document.getElementById('login-container').style.display = 'flex';
+            document.getElementById('dashboard-container').style.display = 'none';
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').style.display = 'none';
         }
 
-        // Auto-refresh every 30 seconds
-        loadDashboard();
-        setInterval(loadDashboard, 30000);
+        async function loadDashboardData() {
+            try {
+                const [statsRes, faultsRes] = await Promise.all([
+                    fetch('/api/v1/dashboard/stats', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/v1/dashboard/faults', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                const stats = await statsRes.json();
+                const faults = await faultsRes.json();
+
+                // Update stats
+                document.getElementById('total-faults').textContent = stats.totalFaults || 0;
+                document.getElementById('open-faults').textContent = stats.openFaults || 0;
+                document.getElementById('resolved-faults').textContent = stats.resolvedFaults || 0;
+                document.getElementById('tools-out').textContent = stats.toolsOut || 0;
+
+                // Update faults table
+                const tbody = document.getElementById('faults-table');
+                tbody.innerHTML = faults.map(fault => `
+                    <tr>
+                        <td>${fault.bayLocation}</td>
+                        <td>${fault.vehicleId}</td>
+                        <td>${fault.busSystem}</td>
+                        <td>${fault.title}</td>
+                        <td class="status-${fault.status}">${fault.status}</td>
+                        <td>${new Date(fault.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+
+                // Initialize charts
+                initCharts(stats);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function initCharts(stats) {
+            // System Chart
+            const systemCtx = document.getElementById('systemChart').getContext('2d');
+            new Chart(systemCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(stats.bySystem || {}),
+                    datasets: [{
+                        data: Object.values(stats.bySystem || {}),
+                        backgroundColor: ['#00d4ff', '#4ecdc4', '#ffe66d', '#ff6b6b', '#95e1d3']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#e4e4e4' } }
+                    }
+                }
+            });
+
+            // Bay Chart
+            const bayCtx = document.getElementById('bayChart').getContext('2d');
+            new Chart(bayCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(stats.byBay || {}),
+                    datasets: [{
+                        label: 'Faults',
+                        data: Object.values(stats.byBay || {}),
+                        backgroundColor: '#00d4ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { ticks: { color: '#e4e4e4' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        x: { ticks: { color: '#e4e4e4' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 </html>
