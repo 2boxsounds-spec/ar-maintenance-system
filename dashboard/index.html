@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Dashboard - Bournemouth Buses</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #e4e4e4; }
+        header { background: rgba(255,255,255,0.05); padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 2.5em; color: #00d4ff; font-weight: bold; }
+        .stat-label { color: #888; margin-top: 5px; }
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 20px; }
+        .card h2 { color: #00d4ff; margin-bottom: 20px; border-bottom: 2px solid rgba(0,212,255,0.3); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        th { color: #888; font-weight: normal; }
+        .status-open { color: #ff6b6b; }
+        .status-in_progress { color: #ffe66d; }
+        .status-resolved { color: #4ecdc4; }
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #00d4ff; color: #000; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📊 Bournemouth Buses - Maintenance Dashboard</h1>
+        <div>
+            <span id="user-info">Loading...</span>
+            <button class="btn btn-primary" onclick="logout()" style="margin-left: 20px;">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="total-faults">0</div>
+                <div class="stat-label">Total Faults</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="open-faults">0</div>
+                <div class="stat-label">Open</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="resolved-faults">0</div>
+                <div class="stat-label">Resolved</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="tools-out">0</div>
+                <div class="stat-label">Tools Out</div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>Faults by System</h2>
+                <canvas id="systemChart"></canvas>
+            </div>
+            <div class="card">
+                <h2>Faults by Bay</h2>
+                <canvas id="bayChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>Active Faults</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bay</th>
+                        <th>Bus ID</th>
+                        <th>System</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Reported</th>
+                    </tr>
+                </thead>
+                <tbody id="faults-table">
+                    <tr><td colspan="6" style="text-align: center; color: #888;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let authToken = localStorage.getItem('dashboardToken');
+
+        async function loadDashboard() {
+            if (!authToken) {
+                window.location.href = '/dashboard/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/v1/dashboard/stats', {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('dashboardToken');
+                    window.location.href = '/dashboard/login.html';
+                    return;
+                }
+
+                const data = await response.json();
+                updateStats(data);
+                updateCharts(data);
+                updateFaultsTable(data.recentFaults);
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+
+        function updateStats(data) {
+            const total = data.faultsByStatus.reduce((sum, f) => sum + f.count, 0);
+            const open = data.faultsByStatus.find(f => f.status === 'open')?.count || 0;
+            const resolved = data.faultsByStatus.find(f => f.status === 'resolved')?.count || 0;
+
+            document.getElementById('total-faults').textContent = total;
+            document.getElementById('open-faults').textContent = open;
+            document.getElementById('resolved-faults').textContent = resolved;
+            document.getElementById('tools-out').textContent = data.checkedOutTools.length;
+        }
+
+        function updateCharts(data) {
+            // System Chart
+            new Chart(document.getElementById('systemChart'), {
+                type: 'pie',
+                data: {
+                    labels: data.faultsBySystem.map(f => f.system),
+                    datasets: [{
+                        data: data.faultsBySystem.map(f => f.count),
+                        backgroundColor: ['#0077BB', '#EE3377', '#009988', '#CC3311', '#EE7733']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Bay Chart
+            new Chart(document.getElementById('bayChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.faultsByBay.map(f => f.bay),
+                    datasets: [{
+                        label: 'Faults',
+                        data: data.faultsByBay.map(f => f.count),
+                        backgroundColor: '#00d4ff'
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function updateFaultsTable(faults) {
+            const tbody = document.getElementById('faults-table');
+            tbody.innerHTML = faults.map(f => `
+                <tr>
+                    <td>${f.bayLocation}</td>
+                    <td>${f.vehicleId}</td>
+                    <td>${f.busSystem}</td>
+                    <td>${f.title}</td>
+                    <td class="status-${f.status}">${f.status}</td>
+                    <td>${new Date(f.createdAt).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.removeItem('dashboardToken');
+            window.location.href = '/dashboard/login.html';
+        }
+
+        // Auto-refresh every 30 seconds
+        loadDashboard();
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
