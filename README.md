@@ -1,10 +1,6 @@
 # AR Maintenance Support System
 
 **Project:** AR-Enhanced Maintenance Support System for Bournemouth Buses  
-**Unit:** COMP5067 - Technological Innovations in Computing  
-**Level:** 5 | **Weighting:** 70%  
-**Deadline:** 12 May 2026  
-
 ---
 
 ## 📋 Project Overview
@@ -239,19 +235,10 @@ GET /api/v1/tool-events
 
 ## 📞 Support
 
-**Unit Contact:** Gernot Liebchen  
-**QA:** Lai Xu, Festus Adedoyin, Fudong Li, Tim Orman  
-
 **Project Team:**
 - Software Engineers: AR/Frontend + Backend/Database
 - Security Specialists: Architecture + Implementation
 - Data Analysts: Dashboard/Viz + Analytics/Algorithms
-
----
-
-## 📄 License
-
-University project for COMP5067 - Bournemouth University
 
 ---
 
